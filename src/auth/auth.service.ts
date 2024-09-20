@@ -5,8 +5,7 @@ import * as argon from 'argon2';
 
 import { User } from "src/entities/user.entity";
 import { AuthDto } from "./dto/auth.dto";
-import { error } from "console";
-import { ExceptionsHandler } from "@nestjs/core/exceptions/exceptions-handler";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class AuthService{
@@ -15,6 +14,7 @@ export class AuthService{
     constructor (
         @InjectRepository(User)
         private usersRepository: Repository<User>,
+        private jwtService: JwtService
     ){}
 
     async signup({email,password, firstName, lastName, justABooleanProp, justANumberProp, bookmarkId }: AuthDto){
@@ -30,12 +30,11 @@ export class AuthService{
             justANumberProp,
             bookmarks: []
         })
-        // try{
-        // } catch(error) {
-        //     return error
-        // }
+ 
         try {
-            return await this.usersRepository.save(newUser);
+            const user = await this.usersRepository.save(newUser);
+            delete user.hash
+            return user
         } catch (error) {
             this.logger.error('Failed to create a new user', error.stack);  // Log the error
 
@@ -47,7 +46,7 @@ export class AuthService{
         }
     }
 
-    async signin({email, password}: AuthDto): Promise<User> {
+    async signin({email, password}: AuthDto): Promise<{ access_token: string }> {
         // find the user by email
         const user = await this.usersRepository.findOne({
             where:{
@@ -67,8 +66,12 @@ export class AuthService{
             throw new UnauthorizedException('Passwords do not match')
         }
 
-        //send back the user
-        return user;
+        const payload = { sub: user.id, username: user.firstName}
+
+        // Generate a JWT and return it here instead of user object
+        return {
+            access_token: await this.jwtService.signAsync(payload),
+        };
     }
 
     getUsers(): Promise<User[]>{
