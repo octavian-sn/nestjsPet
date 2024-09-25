@@ -3,7 +3,10 @@ import { Bookmark } from "./bookmark.entity";
 
 @Entity('users')
 export class User {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn({
+        type: 'int',
+        unsigned: true,
+    })
     id: number
 
     @Column({

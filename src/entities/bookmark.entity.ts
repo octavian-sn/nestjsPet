@@ -1,10 +1,20 @@
-import { Entity, Column, PrimaryColumn, PrimaryGeneratedColumn, ManyToOne } from "typeorm";
+import { Entity, Column, JoinColumn, PrimaryGeneratedColumn, ManyToOne } from "typeorm";
 import { User } from "./user.entity";
 
 @Entity('bookmarks')
 export class Bookmark {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn({
+        type: 'int',
+        unsigned: true, // integer cannot be negative
+    })
     id: number
+
+    @Column({
+        type: 'int',
+        unsigned: true,
+        name: 'user_id',
+    })
+    userId: number;
 
     @Column()
     createdAt: Date
@@ -21,6 +31,9 @@ export class Bookmark {
     @Column()
     link: string
 
-    @ManyToOne(type => User, (user) => user.bookmarks)
+    @ManyToOne(() => User, (user) => user.bookmarks, {
+        onDelete: 'CASCADE',
+    })
+    @JoinColumn({name: 'user_id'})
     user: User
 }

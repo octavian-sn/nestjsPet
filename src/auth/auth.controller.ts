@@ -11,11 +11,6 @@ export class AuthController{
     @Post('signup')
     @UseInterceptors(FileInterceptor('file'))
     signUp(@Body() dto: AuthDto){
-        console.log({
-            dto,
-            typeOfEmail: typeof dto.email,
-            typeOfPassword: typeof dto.password
-        })
         return this.authService.signup(dto)
     }
 
